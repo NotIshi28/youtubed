@@ -219,5 +219,109 @@
     const viewsElement = document.getElementById('views');
     const moneyElement = document.getElementById('money');
     const videoList = document.getElementById('videoList');
+    startButton.addEventListener('click', showAd);
+    skipAdButton.addEventListener('click', skipAd);
+    document.getElementById('createVideo').addEventListener('click', createVideo);
+    document.getElementById('upgrade').addEventListener('click', upgradeEquipment);
+    document.getElementById('hireModerator').addEventListener('click', hireModerator);
+
+    function showAd() {
+      titleScreen.style.display = 'none';
+      adOverlay.style.display = 'block';
+      adVideo.play();
+      
+      // Show skip button after 5 seconds
+      setTimeout(() => {
+        skipAdButton.style.display = 'block';
+      }, 5000);
+
+      // Auto skip after 30 seconds if not skipped
+      setTimeout(skipAd, 30000);
+    }
+
+    function skipAd() {
+      adOverlay.style.display = 'none';
+      gameScreen.style.display = 'block';
+    }
+
+    adVideo.addEventListener('ended', skipAd);
+
+    function updateStats() {
+      subscribersElement.textContent = subscribers.toLocaleString();
+      viewsElement.textContent = views.toLocaleString();
+      moneyElement.textContent = '£' + money.toLocaleString();
+    }
+
+    function createVideo() {
+      const videoItem = document.createElement('li');
+      videoItem.className = 'video-item';
+      const videoTitle = getRandomVideoTitle();
+      videoItem.innerHTML = `
+        <div>${videoTitle}</div>
+        <div class="progress-bar">
+          <div class="progress"></div>
+        </div>
+      `;
+      videoList.prepend(videoItem);
+
+      const progressBar = videoItem.querySelector('.progress');
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 1;
+        progressBar.style.width = `${progress}%`;
+        if (progress >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            videoItem.remove();
+            const newViews = Math.floor(Math.random() * 1000 * videoQuality * (moderators + 1));
+            views += newViews;
+            const newSubscribers = Math.floor(newViews * 0.1);
+            subscribers += newSubscribers;
+            money += 10; // Each video is worth £10
+            updateStats();
+          }, 1000);
+        }
+      }, 50);
+    }
+
+    function upgradeEquipment() {
+      if (money >= 100) {
+        money -= 100;
+        videoQuality += 0.5;
+        updateStats();
+        alert('Equipment upgraded! Your videos will now get more views.');
+      } else {
+        alert('Not enough money to upgrade equipment.');
+      }
+    }
+
+    function hireModerator() {
+      if (money >= 500) {
+        money -= 500;
+        moderators += 1;
+        updateStats();
+        alert('Moderator hired! Your channel will grow faster.');
+      } else {
+        alert('Not enough money to hire a moderator.');
+      }
+    }
+
+    function getRandomVideoTitle() {
+      const adjectives = ['Amazing', 'Incredible', 'Unbelievable', 'Shocking', 'Hilarious'];
+      const nouns = ['Prank', 'Challenge', 'Reaction', 'Review', 'Tutorial'];
+      const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+      const noun = nouns[Math.floor(Math.random() * nouns.length)];
+      return `${adjective} ${noun} Video!`;
+    }
+
+    // Game loop
+    setInterval(() => {
+      const passiveViews = Math.floor(subscribers * 0.1 * (moderators + 1));
+      views += passiveViews;
+      money += Math.floor(passiveViews * 0.01 * videoQuality);
+      updateStats();
+    }, 5000);
+
+    updateStats();
     </script>
 </body></html>
